@@ -41,7 +41,7 @@ export default function LoginPage() {
         </div>
         <div className="relative">
           <p className="text-xs tracking-[0.25em] text-gold uppercase mb-2">Université de Douala</p>
-          <p className="text-xs text-parchment/60">Faculté des Sciences — MIA 468</p>
+          <p className="text-xs text-parchment/60">Faculté des Sciences</p>
         </div>
         <div className="relative max-w-md">
           <Seal size={56} className="text-gold mb-6" />
@@ -53,7 +53,7 @@ export default function LoginPage() {
             les étudiants, les encadreurs et l'administration de la faculté.
           </p>
         </div>
-        <p className="relative text-xs text-parchment/40">Groupe 1 — Année académique 2025/2026</p>
+        <p className="relative text-xs text-parchment/40">Année académique 2025/2026</p>
       </div>
 
       {/* Formulaire */}
