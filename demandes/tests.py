@@ -23,7 +23,8 @@ class DemandeAPITest(TestCase):
         self.demande_data = {
             'etudiant': self.etudiant_profil.id,
             'encadreur_souhaite': self.encadreur_profil.id,
-            'theme': 'IA en agriculture'
+            'theme': 'IA en agriculture',
+            'entreprise': 'ACME Corp',
         }
 
     def test_etudiant_peut_creer_demande(self):
@@ -139,7 +140,7 @@ class DocumentAPITest(TestCase):
     def test_document_trop_gros_est_refuse(self):
         self.client.force_authenticate(user=self.etudiant_user)
         from django.core.files.uploadedfile import SimpleUploadedFile
-        fichier = SimpleUploadedFile("large.pdf", b"x" * (11 * 1024 * 1024), content_type="application/pdf")
+        fichier = SimpleUploadedFile("large.pdf", b"x" * (16 * 1024 * 1024), content_type="application/pdf")
         data = {
             'demande': self.demande.id,
             'fichier': fichier,
@@ -147,4 +148,4 @@ class DocumentAPITest(TestCase):
         }
         response = self.client.post('/api/documents/', data, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('10 Mo', str(response.data))
+        self.assertIn('15 Mo', str(response.data))

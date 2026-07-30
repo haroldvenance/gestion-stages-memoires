@@ -1,61 +1,62 @@
-import React, { createContext, useState, useEffect } from 'react';
-import api from '../services/api';
-import { login as apiLogin, refreshToken as apiRefresh, logout as apiLogout, getMe } from '../services/auth';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { authApi } from '../api/endpoints'
+import { setTokens } from '../api/client'
 
-const AuthContext = createContext();
+const AuthContext = createContext(null)
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const loadUser = useCallback(async () => {
+    const tokens = localStorage.getItem('tokens')
+    if (!tokens) {
+      setLoading(false)
+      return
+    }
+    try {
+      const { data } = await authApi.me()
+      setUser(data)
+    } catch {
+      setTokens(null)
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    const initAuth = async () => {
-      const access = localStorage.getItem('access');
-      const refresh = localStorage.getItem('refresh');
-      if (access && refresh) {
-        try {
-          // Tester si le token est valide en récupérant les infos utilisateur
-          api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-          const userData = await getMe();
-          setUser(userData);
-        } catch (error) {
-          // Token invalide → tentative de rafraîchissement
-          try {
-            const newToken = await apiRefresh(refresh);
-            localStorage.setItem('access', newToken.access);
-            api.defaults.headers.common['Authorization'] = `Bearer ${newToken.access}`;
-            const userData = await getMe();
-            setUser(userData);
-          } catch {
-            apiLogout();
-          }
-        }
-      }
-      setLoading(false);
-    };
-    initAuth();
-  }, []);
+    loadUser()
+  }, [loadUser])
 
-  const login = async (username, password) => {
-    const data = await apiLogin(username, password);
-    localStorage.setItem('access', data.access);
-    localStorage.setItem('refresh', data.refresh);
-    api.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
-    const userData = await getMe();
-    setUser(userData);
-    return userData;
-  };
+  async function login(username, password) {
+    const { data } = await authApi.login(username, password)
+    setTokens(data)
+    const { data: me } = await authApi.me()
+    setUser(me)
+    return me
+  }
 
-  const logout = () => {
-    apiLogout();
-    setUser(null);
-  };
+  function logout() {
+    setTokens(null)
+    setUser(null)
+  }
+
+  async function refreshMe() {
+    const { data } = await authApi.me()
+    setUser(data)
+    return data
+  }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshMe }}>
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
 
-export default AuthContext;
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth doit être utilisé dans un AuthProvider')
+  return ctx
+}

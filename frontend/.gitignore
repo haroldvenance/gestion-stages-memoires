@@ -44,3 +44,26 @@ build/
 # Environnements
 .env.local
 .env.*.local
+
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+db.sqlite3
+*.log
+static/
+media/
+
+# Node / React
+node_modules/
+dist/
+build/
+.DS_Store
+
+# Environnements
+.env.local
+.env.*.local

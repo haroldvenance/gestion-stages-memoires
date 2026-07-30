@@ -12,6 +12,16 @@ class UtilisateurAdmin(UserAdmin):
         ('Informations supplémentaires', {'fields': ('role',)}),
     )
 
+class ProfilEncadreurAdmin(admin.ModelAdmin):
+    list_display = ('user', 'departement', 'specialite', 'quota_max', 'nombre_etudiants_acceptes', 'est_sature')
+    list_editable = ('quota_max',)
+
+
+class ProfilEtudiantAdmin(admin.ModelAdmin):
+    list_display = ('user', 'numero_etudiant', 'filiere', 'niveau')
+    search_fields = ('numero_etudiant', 'user__username')
+
+
 admin.site.register(Utilisateur, UtilisateurAdmin)
-admin.site.register(ProfilEtudiant)
-admin.site.register(ProfilEncadreur)
+admin.site.register(ProfilEtudiant, ProfilEtudiantAdmin)
+admin.site.register(ProfilEncadreur, ProfilEncadreurAdmin)

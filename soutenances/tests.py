@@ -17,8 +17,13 @@ class SoutenanceModelTest(TestCase):
         self.demande = Demande.objects.create(
             etudiant=self.etudiant,
             encadreur_souhaite=self.encadreur,
-            theme='IA'
+            theme='IA',
+            entreprise='ACME Corp',
         )
+        # RG "Condition de planification" : le dossier doit être éligible
+        # (quitus de l'encadreur) avant toute planification de soutenance.
+        self.demande.eligible_soutenance = True
+        self.demande.save()
         self.proposition = PropositionCreneau.objects.create(
             demande=self.demande,
             encadreur=self.encadreur,
@@ -54,8 +59,11 @@ class SoutenanceModelTest(TestCase):
         autre_demande = Demande.objects.create(
             etudiant=autre_etudiant,
             encadreur_souhaite=self.encadreur,
-            theme='Blockchain'
+            theme='Blockchain',
+            entreprise='ACME Corp',
         )
+        autre_demande.eligible_soutenance = True
+        autre_demande.save()
         autre_soutenance = Soutenance(
             demande=autre_demande,
             date_proposee='2026-07-10',

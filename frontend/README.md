@@ -1,16 +1,69 @@
-# React + Vite
+# Frontend — Plateforme de Gestion des Stages et Mémoires Académiques
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface React (Vite + Tailwind CSS v4) pour les trois espaces de la
+plateforme : étudiant, encadreur et administration.
 
-Currently, two official plugins are available:
+## 1. Installation
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+L'application est disponible sur `http://localhost:5173`. En développement,
+les appels `/api/...` sont automatiquement redirigés vers le backend Django
+sur `http://localhost:8000` (voir `vite.config.js`). Démarrez donc le
+backend en parallèle (voir le `README.md` du dossier backend).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 2. Tests
 
-## Expanding the ESLint configuration
+```bash
+npm run test          # Vitest, une seule passe
+npm run test:watch    # mode watch
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 3. Build de production
+
+```bash
+npm run build     # génère ./dist
+npm run preview   # sert le build localement pour vérification
+```
+
+Déployez le contenu de `dist/` sur un hébergeur statique (Netlify, Vercel,
+Nginx…). Si le frontend n'est pas servi depuis le même domaine que l'API,
+adaptez `baseURL` dans `src/api/client.js`.
+
+## 4. Comptes de démonstration
+
+Si vous avez exécuté `python manage.py seed_demo` côté backend :
+
+| Rôle       | Identifiant | Mot de passe     |
+|------------|-------------|-------------------|
+| Admin      | `admin`     | `Admin1234!`      |
+| Encadreur  | `kamga`     | `Encadreur1234!`  |
+| Étudiant   | `25S07401`  | `Etudiant1234!`   |
+
+## 5. Identité visuelle
+
+- **Typographies** : Sora (titres) / Inter (interface), chargées localement
+  via `@fontsource` — aucune dépendance à un CDN externe.
+- **Palette** : encre navy (`--color-ink`), bleu académique
+  (`--color-academic`), parchemin (`--color-parchment`), sceau or
+  (`--color-gold`) — cf. `src/index.css`.
+- **Signature** : les statuts de dossier sont affichés comme des « tampons »
+  (`StatusStamp`), et un sceau stylisé (`Seal.jsx`) rappelle l'identité de
+  la faculté sur l'écran de connexion.
+
+## 6. Structure
+
+```
+src/
+  api/            client axios + rafraîchissement JWT automatique, endpoints groupés
+  context/        AuthContext (session, utilisateur courant)
+  components/     UI partagée (Card, Button, StatusStamp, ChatPanel, DashboardLayout…)
+  routes/         garde d'authentification par rôle
+  pages/
+    etudiant/     tableau de bord, demande, documents, messagerie, soutenance
+    encadreur/    tableau de bord, demandes reçues, étudiants, messagerie, soutenances
+    admin/        tableau de bord, demandes, quotas, soutenances, entreprises, comptes, statistiques, audit
+```

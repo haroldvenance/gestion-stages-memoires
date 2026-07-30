@@ -29,3 +29,14 @@ class IsEncadreurDeLaDemande(permissions.BasePermission):
             encadreur = request.user.profil_encadreur
             return obj.encadreur_souhaite == encadreur or obj.encadreur_effectif == encadreur
         return False
+
+
+class IsEncadreurDuDocument(permissions.BasePermission):
+    """Variante de IsEncadreurDeLaDemande applicable à un objet Document
+    (résolution via document.demande)."""
+    def has_object_permission(self, request, view, obj):
+        if request.user.role == 'encadreur':
+            encadreur = request.user.profil_encadreur
+            demande = obj.demande
+            return demande.encadreur_souhaite == encadreur or demande.encadreur_effectif == encadreur
+        return False

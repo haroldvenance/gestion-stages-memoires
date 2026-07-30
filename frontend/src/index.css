@@ -1,3 +1,66 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "@fontsource/sora/500.css";
+@import "@fontsource/sora/600.css";
+@import "@fontsource/sora/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+
+@theme {
+  --font-display: "Sora", ui-sans-serif, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, sans-serif;
+
+  --color-ink: #14213d;
+  --color-ink-light: #1f2f57;
+  --color-academic: #2a4374;
+  --color-academic-light: #3c5a99;
+  --color-parchment: #f7f5ef;
+  --color-parchment-dark: #efeade;
+  --color-paper: #ffffff;
+  --color-gold: #c08a28;
+  --color-gold-light: #e0b45c;
+  --color-slate: #5b6472;
+  --color-line: #e3ddcd;
+
+  --color-success: #1e7a4c;
+  --color-success-bg: #e7f4ec;
+  --color-danger: #b3261e;
+  --color-danger-bg: #fbe9e8;
+  --color-warning: #b7791f;
+  --color-warning-bg: #fbf1de;
+  --color-info: #2a4374;
+  --color-info-bg: #e9edf5;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  background: var(--color-parchment);
+  color: var(--color-ink);
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Scrollbar styling — subtle, in keeping with the "paper" aesthetic */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-slate); }
+
+/* Focus visibility, kept even where components override outlines */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

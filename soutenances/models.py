@@ -40,6 +40,14 @@ class Soutenance(models.Model):
         ordering = ['date_proposee', 'heure_debut']
 
     def clean(self):
+        # RG "Condition de planification" : seul un dossier éligible (quitus
+        # de l'encadreur obtenu) peut être intégré à la planification.
+        if not self.demande.eligible_soutenance:
+            raise ValidationError(
+                "Cet étudiant n'est pas encore éligible à la soutenance "
+                "(validation finale de l'encadreur manquante)."
+            )
+
         if self.statut == 'validee':
             # RG7 : Vérifier chevauchement avec autre soutenance validée dans la même salle
             heure_fin_self = (datetime.combine(self.date_proposee, self.heure_debut) + timedelta(hours=self.duree_heures)).time()
@@ -88,6 +96,33 @@ class Jury(models.Model):
     def clean(self):
         if Jury.objects.filter(soutenance=self.soutenance, enseignant=self.enseignant).exclude(pk=self.pk).exists():
             raise ValidationError("Cet enseignant a déjà un rôle dans cette soutenance.")
+
+        # RG "Rôle de l'encadreur dans le jury" : l'encadreur de l'étudiant doit
+        # être membre du jury (par défaut Rapporteur) mais ne peut pas en être
+        # le Président.
+        encadreur_demande = self.soutenance.demande.encadreur_effectif
+        if encadreur_demande and self.enseignant_id == encadreur_demande.id and self.role_jury == 'president':
+            raise ValidationError("L'encadreur de l'étudiant ne peut pas être Président du jury.")
+
+        # RG "Contrainte d'indisponibilité du jury" : un enseignant ne peut pas
+        # être affecté à deux soutenances qui se chevauchent, même dans des
+        # salles différentes.
+        soutenance = self.soutenance
+        if soutenance.date_proposee and soutenance.heure_debut:
+            debut_self = datetime.combine(soutenance.date_proposee, soutenance.heure_debut)
+            fin_self = debut_self + timedelta(hours=soutenance.duree_heures)
+            autres = Jury.objects.filter(
+                enseignant=self.enseignant,
+                soutenance__date_proposee=soutenance.date_proposee,
+            ).exclude(soutenance=soutenance).exclude(pk=self.pk)
+            for autre in autres:
+                debut_autre = datetime.combine(autre.soutenance.date_proposee, autre.soutenance.heure_debut)
+                fin_autre = debut_autre + timedelta(hours=autre.soutenance.duree_heures)
+                if debut_self < fin_autre and debut_autre < fin_self:
+                    raise ValidationError(
+                        f"{self.enseignant.user.username} est déjà membre du jury d'une autre "
+                        "soutenance sur ce créneau."
+                    )
 
     def save(self, *args, **kwargs):
         self.full_clean()
