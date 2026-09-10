@@ -1,5 +1,9 @@
 """
 Django settings for backend project.
+
+Configuration adaptée pour :
+- Développement local : SQLite
+- Production : Render (Web Service) + PostgreSQL (Render) + Vercel (Frontend)
 """
 
 import os
@@ -92,14 +96,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-
-
-
-# Base de données – utilise DATABASE_URL (fourni par Render) ou SQLite en local
+# ------------------------------------------------------------------------------
+# BASE DE DONNÉES
+# - En local : SQLite (si DATABASE_URL absent)
+# - En production (Render) : PostgreSQL via DATABASE_URL (Internal Database URL)
+# ------------------------------------------------------------------------------
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
-    # En production (Render) : PostgreSQL avec SSL obligatoire
+    # Production : PostgreSQL avec SSL obligatoire
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
@@ -109,7 +114,7 @@ if DATABASE_URL:
         )
     }
 else:
-    # En local : SQLite (pas de SSL)
+    # Développement local : SQLite (pas de SSL)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -148,20 +153,35 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ------------------------------------------------------------------------------
-# CORS (autorise Vercel à appeler l'API Render)
+# CORS (autorise le frontend Vercel à appeler l'API Render)
 # ------------------------------------------------------------------------------
 if DEBUG:
+    # En développement : tout est autorisé
     CORS_ALLOW_ALL_ORIGINS = True
 else:
+    # En production : liste blanche explicite
     CORS_ALLOWED_ORIGINS = [
-        origin.strip() for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if origin.strip()
+        origin.strip()
+        for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+        if origin.strip()
     ]
+
+    # 🔥 Regex pour accepter AUTOMATIQUEMENT toutes les URLs Vercel du projet
+    # (utile car les URLs de preview changent à chaque déploiement)
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^https://gestion-stages-memoires.*\.vercel\.app$",
+    ]
+
+    CORS_ALLOW_CREDENTIALS = True
 
 # ------------------------------------------------------------------------------
 # CSRF (obligatoire depuis Django 4+ pour les POST depuis Vercel)
+# ⚠️ Django n'accepte PAS les regex pour CSRF : il faut lister les URLs une à une
 # ------------------------------------------------------------------------------
 CSRF_TRUSTED_ORIGINS = [
-    origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()
+    origin.strip()
+    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
 ]
 
 # ------------------------------------------------------------------------------
@@ -202,9 +222,10 @@ SPECTACULAR_SETTINGS = {
 AUTH_USER_MODEL = 'accounts.Utilisateur'
 
 # ------------------------------------------------------------------------------
-# SÉCURITÉ EN PRODUCTION
+# SÉCURITÉ EN PRODUCTION (HTTPS, cookies sécurisés, HSTS)
 # ------------------------------------------------------------------------------
 if not DEBUG:
+    # Render agit comme proxy HTTPS devant Gunicorn
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
