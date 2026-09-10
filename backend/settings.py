@@ -92,18 +92,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# ------------------------------------------------------------------------------
-# BASE DE DONNÉES
-# Utilise DATABASE_URL (fourni par Render) ou .env en local
-# ------------------------------------------------------------------------------
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=True,
-    )
-}
+
+
+
+# Base de données – utilise DATABASE_URL (fourni par Render) ou SQLite en local
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # En production (Render) : PostgreSQL avec SSL obligatoire
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
+    }
+else:
+    # En local : SQLite (pas de SSL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ------------------------------------------------------------------------------
 # VALIDATION DES MOTS DE PASSE
