@@ -3,6 +3,7 @@ import io
 import logging
 
 from django.contrib.auth import get_user_model
+from django.utils.crypto import get_random_string
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -102,7 +103,8 @@ class UtilisateurAdminViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def reinitialiser_mot_de_passe(self, request, pk=None):
         user = self.get_object()
-        nouveau = Utilisateur.objects.make_random_password(length=12)
+        # Django 5.1+ a supprimé make_random_password() : on utilise get_random_string()
+        nouveau = get_random_string(length=12)
         user.set_password(nouveau)
         user.save()
         security_logger.info("Mot de passe réinitialisé pour %s par %s", user.username, request.user.username)
@@ -151,7 +153,8 @@ class UtilisateurAdminViewSet(viewsets.ModelViewSet):
                 first_name=(ligne.get('prenom') or '').strip(),
                 last_name=(ligne.get('nom') or '').strip(),
                 role='etudiant',
-                password=Utilisateur.objects.make_random_password(length=12),
+                # Django 5.1+ a supprimé make_random_password() : on utilise get_random_string()
+                password=get_random_string(length=12),
             )
             profil = user.profil_etudiant
             profil.numero_etudiant = matricule

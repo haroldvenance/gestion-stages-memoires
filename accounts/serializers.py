@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.utils.crypto import get_random_string
 from rest_framework import serializers
 
 from .models import ProfilEtudiant, ProfilEncadreur
@@ -85,7 +86,8 @@ class UtilisateurAdminSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         user = Utilisateur(**validated_data)
-        user.set_password(password or Utilisateur.objects.make_random_password(length=12))
+        # Django 5.1+ a supprimé make_random_password() : on utilise get_random_string()
+        user.set_password(password or get_random_string(length=12))
         user.save()
         return user
 
