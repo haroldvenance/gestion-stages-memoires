@@ -32,9 +32,12 @@ INSTALLED_APPS = [
     'corsheaders',
     # Nos applications
     'accounts',
+    'audit',           # ← à ajouter
     'demandes',
+    'entreprises',     # ← à ajouter (si elle existe)
     'messagerie',
     'soutenances',
+    'statistiques', 
 ]
 
 MIDDLEWARE = [
