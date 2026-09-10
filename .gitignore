@@ -32,3 +32,5 @@ build/
 # Environnements
 .env.local
 .env.*.local
+
+.env
