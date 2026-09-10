@@ -1,7 +1,15 @@
 import axios from 'axios'
 
+// Récupère l'URL du backend depuis les variables d'environnement Vercel
+// En local : http://127.0.0.1:8000
+// En production : https://backend-api-0yjk.onrender.com
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: `${API_URL}/api`,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 })
 
 function getTokens() {
@@ -38,8 +46,9 @@ api.interceptors.response.use(
       original._retry = true
       try {
         if (!refreshPromise) {
-          refreshPromise = axios
-            .post('/api/auth/refresh/', { refresh: getTokens().refresh })
+          // ⚠️ On utilise `api` au lieu d'`axios` pour bénéficier du bon baseURL
+          refreshPromise = api
+            .post('/auth/refresh/', { refresh: getTokens().refresh })
             .finally(() => {
               refreshPromise = null
             })
